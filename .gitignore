@@ -1,0 +1,8 @@
+.venv/
+data/
+database/*
+!database/.gitkeep
+*.duckdb
+*.duckdb.wal
+__pycache__/
+/logs
