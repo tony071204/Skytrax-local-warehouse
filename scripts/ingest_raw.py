@@ -25,14 +25,14 @@ CSV_FILES = [
 ]
 
 
-def main() -> None:
-    con = duckdb.connect(str(DB_PATH))
+def main(data_dir: Path = DATA_DIR, db_path: Path = DB_PATH) -> None:
+    con = duckdb.connect(str(db_path))
     try:
-        print(f"Ingesting into {DB_PATH.relative_to(ROOT)}")
+        print(f"Ingesting into {db_path}")
         for csv in CSV_FILES:
-            path = DATA_DIR / csv
+            path = data_dir / csv
             if not path.exists():
-                raise FileNotFoundError(f"Missing CSV: {path.relative_to(ROOT)}")
+                raise FileNotFoundError(f"Missing CSV: {path}")
             table = f"raw_{path.stem}"  # airlines.csv -> raw_airlines
             con.execute(
                 f"CREATE OR REPLACE TABLE {table} AS "
