@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: stg__airlines
+    description: "One row per airline. Dimension table, join key for all review tables."
+    columns:
+      - name: airline_id
+        description: "Primary key, numeric identifier of the airline."
+        tests:
+          - unique
+          - not_null
+      - name: airline_name
+        description: "Display name of the airline."
+        tests:
+          - not_null
