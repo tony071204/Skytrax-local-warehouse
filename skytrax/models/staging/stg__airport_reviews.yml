@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg__airport_reviews
+    description: "One row per airport review"
+    columns:
+      - name: review_id
+        description: "Primary key of the review"
+        tests:
+          - unique
+          - not_null
+      - name: airport_id
+        description: "Airport of the review"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg__airports')
+                field: airport_id
+      - name: experience_at_airport
+        description: "Which part of the journey the review covers"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Departure Only', 'Arrival and Departure', 'Transit', 'Arrival Only']
+      - name: type_of_traveller
+        description: "Traveller segment"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Solo Leisure', 'Couple Leisure', 'Family Leisure', 'Business']
+      - name: nationality
+        description: "Reviewer country"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('countries')
+                field: country_name
