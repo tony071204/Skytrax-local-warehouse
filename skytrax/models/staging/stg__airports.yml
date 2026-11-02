@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: stg__airports
+    description: "One row per airport. Dimension table, join key for raw_airport_reviews."
+    columns:
+      - name: airport_id
+        description: "Primary key, numeric identifier of the airport."
+        tests:
+          - unique
+          - not_null
+      - name: airport_name
+        description: "Display name of the airport."
+        tests:
+          - not_null

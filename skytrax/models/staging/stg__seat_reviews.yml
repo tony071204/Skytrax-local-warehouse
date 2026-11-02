@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg__seat_reviews
+    description: "One row per seat review"
+    columns:
+      - name: review_id
+        description: "Primary key of the review."
+        tests:
+          - unique
+          - not_null
+      - name: airline_id
+        description: "Airline of the review."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg__airlines')
+                field: airline_id
+      - name: seat_type
+        description: "Cabin class"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Economy Class', 'Premium Economy', 'Business Class', 'First Class', 'World Traveller Plus']
+      - name: type_of_traveller
+        description: "Traveller segment"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Solo Leisure', 'Couple Leisure', 'Family Leisure', 'Business', 'Leisure']
+      - name: seat_layout
+        description: "Normalised layout such as 3x3 or 2x4x2"
+      - name: nationality
+        description: "Reviewer country"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('countries')
+                field: country_name
