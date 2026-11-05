@@ -6,3 +6,5 @@ database/*
 *.duckdb.wal
 __pycache__/
 /logs
+*.bak
+skytrax/.user.yml

@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Skytrax raw tables landed by scripts/ingest_raw.py"
+    schema: main
+    tables:
+      - name: raw_airlines
+      - name: raw_airports
+      - name: raw_airline_reviews
+      - name: raw_airport_reviews
+      - name: raw_lounge_reviews
+      - name: raw_seat_reviews

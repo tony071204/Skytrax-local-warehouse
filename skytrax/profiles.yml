@@ -2,7 +2,7 @@ skytrax:
   outputs:
     dev:
       type: duckdb
-      path: dev.duckdb
+      path: ../database/dev.duckdb
       threads: 1
 
     prod:
