@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: int__airline_reviews
+    description: "Airline reviews prepared for the mart layer, one row per review"
+    columns:
+      - name: review_id
+        description: "Primary key of the review."
+        tests:
+          - unique
+          - not_null
+      - name: airline_id
+        tests:
+          - not_null
+      - name: cabin_name
+        tests:
+          - not_null
+      - name: nationality
+        tests:
+          - not_null
+      - name: traveller_type
+        tests:
+          - not_null
+      - name: recommended
+        description: "1 = reviewer recommends, 0 = does not"
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
