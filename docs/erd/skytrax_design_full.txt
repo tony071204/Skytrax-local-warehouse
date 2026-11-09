@@ -1,0 +1,141 @@
+dim_date
+--------
+date_key INTEGER PK
+full_date DATE
+day_of_month SMALLINT
+month_number SMALLINT
+month_name VARCHAR
+quarter_number SMALLINT
+year_number SMALLINT
+year_month VARCHAR
+year_quarter VARCHAR
+
+dim_airline
+-----------
+airline_key INTEGER PK
+airline_id BIGINT # original id from stg__airlines
+airline_name VARCHAR
+service_model VARCHAR NULL # full-service / low-cost, from seed (NOT FINAL)
+region VARCHAR NULL # from seed (NOT FINAL)
+peer_group VARCHAR NULL # from seed (NOT FINAL)
+
+dim_cabin
+---------
+cabin_key INTEGER PK
+cabin_name VARCHAR # Economy, Premium Economy, Business, First, Unknown
+
+# merges nationality + traveller_type into one dim (replaces old dim_country and dim_traveller_type)
+dim_customer_profile
+--------------------
+customer_profile_key INTEGER PK
+nationality VARCHAR # from countries seed
+traveller_type VARCHAR # Business, Solo Leisure, Couple Leisure, Family Leisure, Unknown
+
+dim_aircraft
+------------
+aircraft_key INTEGER PK
+aircraft_type VARCHAR
+seat_layout VARCHAR NULL
+
+dim_lounge
+----------
+lounge_key INTEGER PK
+lounge_name VARCHAR # Unknown if empty (47%)
+type_of_lounge VARCHAR
+airport_name VARCHAR NULL
+
+dim_airport
+-----------
+airport_key INTEGER PK
+airport_id BIGINT
+airport_name VARCHAR
+
+dim_airport_experience
+----------------------
+airport_experience_key INTEGER PK
+airport_experience VARCHAR # Departure Only, Arrival Only, Arrival and Departure, Transit, Unknown
+
+# FACT 1: 1 row = 1 airline review (~149,000). Matches the drawn ERD.
+fct_airline_reviews
+-------------------
+review_id BIGINT PK # degenerate dimension
+date_flown_key INTEGER FK >- dim_date.date_key
+date_submitted_key INTEGER FK >- dim_date.date_key
+airline_key INTEGER FK >- dim_airline.airline_key
+cabin_key INTEGER FK >- dim_cabin.cabin_key
+customer_profile_key INTEGER FK >- dim_customer_profile.customer_profile_key
+verify BOOLEAN
+seat_comfort DOUBLE NULL
+cabin_staff_service DOUBLE NULL
+food_and_beverages DOUBLE NULL
+inflight_entertainment DOUBLE NULL
+ground_service DOUBLE NULL
+wifi_and_connectivity DOUBLE NULL
+value_for_money DOUBLE NULL
+recommended_flag SMALLINT # 0/1
+review_count SMALLINT # = 1
+
+# FACT 2: 1 row = 1 seat review (~3,400). Not in the drawing; adapted to dim_customer_profile.
+fct_seat_reviews
+----------------
+review_id BIGINT PK
+date_flown_key INTEGER FK >- dim_date.date_key
+date_submitted_key INTEGER FK >- dim_date.date_key
+airline_key INTEGER FK >- dim_airline.airline_key
+cabin_key INTEGER FK >- dim_cabin.cabin_key
+customer_profile_key INTEGER FK >- dim_customer_profile.customer_profile_key
+aircraft_key INTEGER FK >- dim_aircraft.aircraft_key
+verify BOOLEAN
+seat_legroom DOUBLE NULL
+seat_recline DOUBLE NULL
+seat_width DOUBLE NULL
+aisle_space DOUBLE NULL
+seat_storage DOUBLE NULL
+power_supply DOUBLE NULL
+viewing_tv_screen DOUBLE NULL
+sleep_comfort DOUBLE NULL
+sitting_comfort DOUBLE NULL
+seat_privacy DOUBLE NULL
+recommended_flag SMALLINT
+review_count SMALLINT
+
+# FACT 3: 1 row = 1 lounge review (~4,850). Not in the drawing; adapted to dim_customer_profile.
+fct_lounge_reviews
+------------------
+review_id BIGINT PK
+date_visit_key INTEGER FK >- dim_date.date_key
+date_submitted_key INTEGER FK >- dim_date.date_key
+airline_key INTEGER FK >- dim_airline.airline_key
+lounge_key INTEGER FK >- dim_lounge.lounge_key
+customer_profile_key INTEGER FK >- dim_customer_profile.customer_profile_key
+verify BOOLEAN
+comfort DOUBLE NULL
+cleanliness DOUBLE NULL
+bar_and_beverages DOUBLE NULL
+catering DOUBLE NULL
+washrooms DOUBLE NULL
+wifi_connectivity DOUBLE NULL
+staff_service DOUBLE NULL
+recommended_flag SMALLINT
+review_count SMALLINT
+
+# FACT 4: 1 row = 1 airport review (~48,850). Build later. Independent, not linked to dim_airline.
+fct_airport_reviews
+-------------------
+review_id BIGINT PK
+date_visit_key INTEGER FK >- dim_date.date_key
+date_submitted_key INTEGER FK >- dim_date.date_key
+airport_key INTEGER FK >- dim_airport.airport_key
+airport_experience_key INTEGER FK >- dim_airport_experience.airport_experience_key
+customer_profile_key INTEGER FK >- dim_customer_profile.customer_profile_key
+verify BOOLEAN
+queuing_times DOUBLE NULL
+terminal_cleanliness DOUBLE NULL
+terminal_seating DOUBLE NULL
+terminal_signs DOUBLE NULL
+food_beverages DOUBLE NULL
+airport_shopping DOUBLE NULL
+airport_staff DOUBLE NULL
+wifi_connectivity DOUBLE NULL # empty in ~56%
+recommended_flag SMALLINT
+review_count SMALLINT
