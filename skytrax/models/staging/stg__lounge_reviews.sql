@@ -16,6 +16,7 @@ lounge_reviews_with_cleaned_values as (
         {{ clean_lounge_name('lounge_name') }} as lounge_name,
         {{ clean_airport_name('airport') }} as airport_name,
         type_of_lounge,
+        type_of_traveller,
         verify,
         date_submitted,
         date_visit,
