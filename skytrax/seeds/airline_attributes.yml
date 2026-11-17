@@ -1,0 +1,29 @@
+version: 2
+
+seeds:
+  - name: airline_attributes
+    description: >
+      Hand-maintained attributes for the airlines we benchmark (BA, its European peers and the
+      global premium leaders). Airlines not listed here get 'Unknown' in dim_airline.
+    columns:
+      - name: airline_id
+        description: "Airline id as in stg__airlines."
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg__airlines')
+                field: airline_id
+      - name: service_model
+        description: "Full-service or Low-cost."
+        tests:
+          - not_null
+      - name: region
+        description: "Home region of the airline."
+        tests:
+          - not_null
+      - name: peer_group
+        description: "Label shared by airlines that are compared with each other."
+        tests:
+          - not_null
