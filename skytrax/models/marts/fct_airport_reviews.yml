@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: fct_airport_reviews
+    description: >
+      One row per airport review. Independent of the airline facts: it has no airline_key.
+      Scores are NULL when the reviewer left a category blank. Aggregate with avg();
+      recommend rate = avg(recommended).
+    columns:
+      - name: review_id
+        description: "Degenerate dimension and primary key."
+        tests:
+          - unique
+          - not_null
+      - name: date_visit_key
+        description: "Date of the airport visit. -1 (Unknown) when missing (about 35% of reviews)."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: date_submitted_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: airport_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_airport')
+                field: airport_key
+      - name: airport_experience_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_airport_experience')
+                field: airport_experience_key
+      - name: traveller_type_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_traveller_type')
+                field: traveller_type_key
+      - name: country_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_country')
+                field: country_key
+      - name: verify
+        tests:
+          - not_null
+      - name: queuing_times
+        tests: &score_tests
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: terminal_cleanliness
+        tests: *score_tests
+      - name: terminal_seating
+        tests: *score_tests
+      - name: terminal_signs
+        tests: *score_tests
+      - name: food_beverages
+        tests: *score_tests
+      - name: airport_shopping
+        tests: *score_tests
+      - name: airport_staff
+        tests: *score_tests
+      - name: wifi_connectivity
+        description: "Empty on about 56% of reviews."
+        tests: *score_tests
+      - name: recommended
+        description: "1 = recommends the airport, 0 = does not."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
+      - name: review_count
+        description: "Always 1. Lets reviews be counted with sum()."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+                quote: false

@@ -1,0 +1,92 @@
+version: 2
+
+models:
+  - name: fct_airline_reviews
+    description: >
+      One row per airline review. Scores are NULL when the reviewer left a category blank.
+      Aggregate with avg(); recommend rate = avg(recommended).
+    columns:
+      - name: review_id
+        description: "Degenerate dimension and primary key."
+        tests:
+          - unique
+          - not_null
+      - name: date_flown_key
+        description: "Date of the flight. -1 (Unknown) when the review has no flown date."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: date_submitted_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: airline_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_airline')
+                field: airline_key
+      - name: cabin_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cabin')
+                field: cabin_key
+      - name: traveller_type_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_traveller_type')
+                field: traveller_type_key
+      - name: country_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_country')
+                field: country_key
+      - name: verify
+        tests:
+          - not_null
+      - name: seat_comfort
+        tests: &score_tests
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: cabin_staff_service
+        tests: *score_tests
+      - name: food_and_beverages
+        tests: *score_tests
+      - name: inflight_entertainment
+        tests: *score_tests
+      - name: ground_service
+        tests: *score_tests
+      - name: wifi_and_connectivity
+        tests: *score_tests
+      - name: value_for_money
+        tests: *score_tests
+      - name: recommended
+        description: "1 = recommends the airline, 0 = does not."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
+      - name: review_count
+        description: "Always 1. Lets reviews be counted with sum()."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+                quote: false
