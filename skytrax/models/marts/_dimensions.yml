@@ -1,0 +1,230 @@
+version: 2
+
+# Tests and docs for every dimension in marts. Facts have one yml file each (fct_<name>.yml).
+
+models:
+  - name: dim_date
+    description: >
+      Calendar dimension, one row per day from 2002-01-01 to 2026-12-31 (fixed range that
+      covers every date in the int review tables), plus one 'Unknown' row (date_key = -1)
+      for reviews without a date. Role-playing: the facts join it twice, as the
+      flown/visit date and as the submitted date.
+    columns:
+      - name: date_key
+        description: "Primary key, yyyymmdd as integer (e.g. 20180301). -1 = Unknown."
+        tests:
+          - unique
+          - not_null
+      - name: full_date
+        description: "Calendar date. NULL only on the Unknown row."
+        tests:
+          - unique
+      - name: day_of_month
+        description: "Day of the month, 1 to 31."
+      - name: month_number
+        description: "Month, 1 to 12."
+      - name: month_name
+        description: "English month name, e.g. March."
+      - name: quarter_number
+        description: "Calendar quarter, 1 to 4."
+      - name: year_number
+        description: "Calendar year."
+      - name: year_month
+        description: "Year and month as text, e.g. 2018-03."
+      - name: year_quarter
+        description: "Year and quarter as text, e.g. 2018-Q1."
+
+  - name: dim_airline
+    description: >
+      One row per airline. Attributes come from the airline_attributes seed, so only the
+      benchmarked airlines have values; the rest are 'Unknown'.
+    columns:
+      - name: airline_key
+        description: "Surrogate key (row number ordered by airline_id)."
+        tests:
+          - unique
+          - not_null
+      - name: airline_id
+        description: "Original airline id from stg__airlines."
+        tests:
+          - unique
+          - not_null
+      - name: airline_name
+        tests:
+          - unique
+          - not_null
+      - name: service_model
+        description: "Full-service or Low-cost; 'Unknown' when the airline is not in the seed."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [Full-service, Low-cost, Unknown]
+      - name: region
+        description: "Home region; 'Unknown' when the airline is not in the seed."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [Europe, Middle East, Asia, Unknown]
+      - name: peer_group
+        description: "Benchmark group; airlines with the same label are compared with each other."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [European full-service, Global premium, Unknown]
+
+  - name: dim_cabin
+    description: "Cabin / seat class of the review, shared by the airline and seat facts."
+    columns:
+      - name: cabin_key
+        description: "Surrogate key (row number ordered by cabin_name)."
+        tests:
+          - unique
+          - not_null
+      - name: cabin_name
+        description: "Cabin name as cleaned in int. 'Unknown' when the reviewer gave none."
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Economy Class
+                  - Premium Economy
+                  - Business Class
+                  - First Class
+                  - World Traveller Plus
+                  - Unknown
+
+  - name: dim_traveller_type
+    description: "Type of traveller, shared by all four fact tables."
+    columns:
+      - name: traveller_type_key
+        description: "Surrogate key (row number ordered by traveller_type)."
+        tests:
+          - unique
+          - not_null
+      - name: traveller_type
+        description: >
+          Traveller type as cleaned in int. 'Leisure' appears only in seat reviews;
+          lounge reviews only have Business or Unknown.
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Business
+                  - Solo Leisure
+                  - Couple Leisure
+                  - Family Leisure
+                  - Leisure
+                  - Unknown
+
+  - name: dim_country
+    description: "Reviewer nationality, shared by all four fact tables. Built from the countries seed."
+    columns:
+      - name: country_key
+        description: "Surrogate key (row number ordered by country_name)."
+        tests:
+          - unique
+          - not_null
+      - name: country_name
+        description: "Country name from the countries seed, or 'Unknown' when empty or not recognised."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_aircraft
+    description: >
+      One row per aircraft type and seat layout combination found in the seat reviews.
+      Used by fct_seat_reviews only (aircraft is empty on most airline reviews).
+    columns:
+      - name: aircraft_key
+        description: "Surrogate key (row number ordered by aircraft_type, seat_layout)."
+        tests:
+          - unique
+          - not_null
+      - name: aircraft_type
+        description: "Aircraft model as cleaned in int, e.g. Airbus A380. 'Unknown' when not given."
+        tests:
+          - not_null
+      - name: seat_layout
+        description: "Seat layout as cleaned in int, e.g. 2x4x2. 'Unknown' when not given."
+        tests:
+          - not_null
+
+  - name: dim_lounge
+    description: >
+      One row per lounge name, lounge type and airport combination found in the lounge reviews.
+      Used by fct_lounge_reviews only. The lounge name is empty on about 47% of reviews.
+    columns:
+      - name: lounge_key
+        description: "Surrogate key (row number ordered by lounge_name, type_of_lounge, airport_name)."
+        tests:
+          - unique
+          - not_null
+      - name: lounge_name
+        description: "Lounge name, upper case as cleaned in staging. 'Unknown' when not given."
+        tests:
+          - not_null
+      - name: type_of_lounge
+        description: "Who the lounge is for (Business Class, First Class, Frequent Flyer, Members, Pay to Use) or 'Unknown'."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Business Class
+                  - First Class
+                  - Frequent Flyer
+                  - Members
+                  - Pay to Use
+                  - Unknown
+      - name: airport_name
+        description: "Airport the lounge is in, as cleaned in staging. 'Unknown' when not given."
+        tests:
+          - not_null
+
+  - name: dim_airport
+    description: "One row per airport. Used by fct_airport_reviews only."
+    columns:
+      - name: airport_key
+        description: "Surrogate key (row number ordered by airport_id)."
+        tests:
+          - unique
+          - not_null
+      - name: airport_id
+        description: "Original airport id from stg__airports."
+        tests:
+          - unique
+          - not_null
+      - name: airport_name
+        description: "Airport name as cleaned in staging."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_airport_experience
+    description: "What the reviewer did at the airport. Used by fct_airport_reviews only."
+    columns:
+      - name: airport_experience_key
+        description: "Surrogate key (row number ordered by airport_experience)."
+        tests:
+          - unique
+          - not_null
+      - name: airport_experience
+        description: "Departure Only, Arrival Only, Arrival and Departure, Transit, or 'Unknown'."
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Departure Only
+                  - Arrival Only
+                  - Arrival and Departure
+                  - Transit
+                  - Unknown
