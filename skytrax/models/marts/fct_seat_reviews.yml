@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: fct_seat_reviews
+    description: >
+      One row per seat review. Scores are NULL when the reviewer left a category blank
+      (sleep, sitting and privacy are only asked for Business and First). Aggregate with avg();
+      recommend rate = avg(recommended).
+    columns:
+      - name: review_id
+        description: "Degenerate dimension and primary key."
+        tests:
+          - unique
+          - not_null
+      - name: date_flown_key
+        description: "Date of the flight. -1 (Unknown) when the review has no flown date."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: date_submitted_key
+        description: "Date the review was submitted. -1 (Unknown) when missing."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: airline_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_airline')
+                field: airline_key
+      - name: cabin_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cabin')
+                field: cabin_key
+      - name: traveller_type_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_traveller_type')
+                field: traveller_type_key
+      - name: country_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_country')
+                field: country_key
+      - name: aircraft_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_aircraft')
+                field: aircraft_key
+      - name: verify
+        tests:
+          - not_null
+      - name: seat_legroom
+        tests: &score_tests
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: seat_recline
+        tests: *score_tests
+      - name: seat_width
+        tests: *score_tests
+      - name: aisle_space
+        tests: *score_tests
+      - name: seat_storage
+        tests: *score_tests
+      - name: power_supply
+        tests: *score_tests
+      - name: viewing_tv_screen
+        tests: *score_tests
+      - name: sleep_comfort
+        tests: *score_tests
+      - name: sitting_comfort
+        tests: *score_tests
+      - name: seat_privacy
+        tests: *score_tests
+      - name: recommended
+        description: "1 = recommends the seat / airline, 0 = does not."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
+      - name: review_count
+        description: "Always 1. Lets reviews be counted with sum()."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+                quote: false
